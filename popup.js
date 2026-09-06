@@ -5,11 +5,71 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('page-url').textContent = new URL(tab.url).hostname;
   }
 
+  // Ask the background service worker if it already has a fresh result cached
+  // (populated by content_bridge.js when the page first loaded).
+  const cached = await chrome.runtime.sendMessage({
+    action: 'GET_SCAN_RESULTS',
+    tabId: tab.id
+  });
+
+  if (cached && cached.url === tab.url) {
+    renderResults(cached.data);
+    return;
+  }
+
+  // No usable cache (extension just installed, page hasn't finished its own
+  // scan yet, or it's a restricted page content scripts can't run on) —
+  // fall back to scanning right now from the popup.
+  await runFreshScan(tab);
+});
+
+async function runFreshScan(tab) {
   let pageText = '';
   try {
     const [{ result }] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: () => document.body.innerText
+      func: () => {
+        // Kept in sync with content_bridge.js's getProductText() — excludes
+        // recommendation/carousel/sponsored sections wherever they sit in
+        // the DOM, since they live INSIDE the same container as the actual
+        // product on most sites (a container whitelist alone doesn't work).
+        const EXCLUDE_SELECTOR = [
+          '[id*="sims" i]', '[id*="similar" i]', '[id*="related" i]',
+          '[id*="recommend" i]', '[class*="recommend" i]',
+          '[id*="also-bought" i]', '[id*="also_bought" i]',
+          '[id*="cross-sell" i]', '[id*="crosssell" i]',
+          '[id*="upsell" i]', '[class*="carousel" i]', '[id*="carousel" i]',
+          '[class*="sponsored" i]', '[id*="sponsored" i]', '[id*="sp_detail" i]',
+          '[class*="p13n" i]', '[id*="p13n" i]',
+          'script', 'style', 'noscript'
+        ].join(',');
+
+        if (!document.body) return '';
+
+        const excluded = new Set(document.body.querySelectorAll(EXCLUDE_SELECTOR));
+        function isExcluded(el) {
+          while (el) {
+            if (excluded.has(el)) return true;
+            el = el.parentElement;
+          }
+          return false;
+        }
+
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            const parent = node.parentElement;
+            if (!parent || isExcluded(parent)) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+
+        let text = '';
+        let node;
+        while ((node = walker.nextNode())) {
+          text += node.nodeValue + ' ';
+        }
+        return text.replace(/\s+/g, ' ').trim();
+      }
     });
     pageText = result || '';
   } catch (err) {
@@ -26,11 +86,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     const data = await response.json();
     renderResults(data);
+
+    // Let background cache this too, so the next popup-open on this tab
+    // (same page) can skip straight to the cache.
+    chrome.runtime.sendMessage({
+      action: 'scanText',
+      url: tab.url,
+      text: pageText,
+      timestamp: Date.now(),
+      tabId: tab.id
+    });
   } catch (err) {
     console.error('Backend offline:', err);
     showError('Could not reach the local analysis server on port 5000.');
   }
-});
+}
 
 function showError(message) {
   document.getElementById('risk-status').textContent = 'Backend unreachable';
