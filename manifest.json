@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "ShadowGuard",
+  "version": "1.0",
+  "description": "Protects against e-commerce dark patterns.",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content_bridge.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:5000/*",
+    "http://localhost:5000/*"
+  ]
+}

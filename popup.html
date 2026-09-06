@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Pattern Detector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="title">ShadowGuard <span class="badge">v3.2</span></div>
+      <div class="domain" id="page-url">activeTab scanning...</div>
+    </div>
+  </div>
+
+  <div class="score-card">
+    <div class="score-circle">
+      <span id="score-val">--</span>
+      <span class="score-label">Risk</span>
+    </div>
+    <div class="score-info">
+      <h3 id="risk-status">Scanning...</h3>
+      <p id="risk-desc">Analyzing this page for manipulative patterns.</p>
+    </div>
+  </div>
+
+  <div id="threats-list"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
