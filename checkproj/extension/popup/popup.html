@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dark Pattern Detector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-mark"><span></span><span></span><span></span></div>
+        <div>
+          <p class="eyebrow">AI SECURITY SCAN</p>
+          <h1>Dark Pattern <em>Detector</em></h1>
+        </div>
+      </div>
+      <div class="live"><i></i> LOCAL</div>
+    </header>
+
+    <section class="score-card" id="scoreCard">
+      <div class="score-wrap">
+        <div class="ring" id="ring">
+          <div class="ring-inner">
+            <strong id="score">—</strong>
+            <span>THREAT SCORE</span>
+          </div>
+        </div>
+      </div>
+      <div class="risk-copy">
+        <span class="risk-badge" id="riskBadge">NOT SCANNED</span>
+        <h2 id="riskTitle">Ready to scan</h2>
+        <p id="status">Analyze the page to see only the threats actually detected.</p>
+      </div>
+    </section>
+
+    <button id="scanButton" class="scan-button">
+      <span class="scan-icon">⌕</span>
+      <span>Scan this page</span>
+      <span class="arrow">→</span>
+    </button>
+
+    <section class="threats">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">ANALYSIS</p>
+          <h2>Detected threats</h2>
+        </div>
+        <span id="count">0</span>
+      </div>
+      <div id="threatList" class="threat-list">
+        <div class="empty">
+          <div class="empty-orbit"><span>✦</span></div>
+          <p>Waiting for a page scan</p>
+          <small>No demo data. Results appear only after this page is analyzed.</small>
+        </div>
+      </div>
+    </section>
+
+    <section id="comparison" class="comparison hidden"></section>
+
+    <footer>
+      <span><b>AI</b> + NLP + heuristics</span>
+      <span>v1.0</span>
+    </footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+Place your real dark-pattern training CSV here as dark_patterns.csv.
+Required columns: text,label
+No demo rows are included by design.
